@@ -1,0 +1,5 @@
+# lims-web/Dockerfile 构建用
+node_modules/
+dist/
+.git/
+*.log

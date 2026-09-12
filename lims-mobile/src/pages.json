@@ -1,0 +1,54 @@
+{
+  "easycom": {
+    "autoscan": true
+  },
+  "pages": [
+    { "path": "pages/login/login", "style": { "navigationBarTitleText": "登录", "navigationStyle": "custom" } },
+    {
+      "path": "pages/tabbar/workbench",
+      "style": { "navigationBarTitleText": "工作台" }
+    },
+    {
+      "path": "pages/tabbar/tasks",
+      "style": { "navigationBarTitleText": "采样任务" }
+    },
+    {
+      "path": "pages/tabbar/customers",
+      "style": { "navigationBarTitleText": "客户" }
+    },
+    {
+      "path": "pages/tabbar/mine",
+      "style": { "navigationBarTitleText": "我的" }
+    },
+    {
+      "path": "pages/entrust/detail",
+      "style": { "navigationBarTitleText": "委托单详情" }
+    },
+    {
+      "path": "pages/sampling/map",
+      "style": { "navigationBarTitleText": "采样点位采集(BD-09)" }
+    },
+    {
+      "path": "pages/approval/todo",
+      "style": { "navigationBarTitleText": "审批待办" }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "LIMS移动作业端",
+    "navigationBarBackgroundColor": "#1677ff",
+    "backgroundColor": "#f5f6fa"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1677ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/tabbar/workbench", "text": "工作台" },
+      { "pagePath": "pages/tabbar/tasks", "text": "采样任务" },
+      { "pagePath": "pages/tabbar/customers", "text": "客户" },
+      { "pagePath": "pages/tabbar/mine", "text": "我的" }
+    ]
+  }
+}

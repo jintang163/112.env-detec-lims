@@ -1,0 +1,55 @@
+# =====================================================================
+# 精简编排(按需求): 只编排自研应用(后端 + PC前端/Nginx + 移动端H5静态站)
+# MySQL / Redis / Nginx基础镜像等使用已存在实例, 通过环境变量指定:
+#   MYSQL_HOST / MYSQL_PORT / MYSQL_USER / MYSQL_PASSWORD
+#   REDIS_HOST / REDIS_PORT / REDIS_PASSWORD
+#   MINIO_ENDPOINT / MINIO_ROOT_USER / MINIO_ROOT_PASSWORD(可选, 默认本地磁盘存储)
+# 启动: docker compose -f docker-compose.app.yml up -d --build
+# =====================================================================
+services:
+  lims-backend:
+    build:
+      context: ../lims-backend
+    container_name: lims-backend
+    restart: unless-stopped
+    environment:
+      # ---- 改成您现有的 MySQL / Redis 地址 ----
+      MYSQL_HOST: ${MYSQL_HOST:-mysql-host}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+      REDIS_HOST: ${REDIS_HOST:-redis-host}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      # 文件存储: local(默认, 挂载卷) 或 minio
+      LIMS_STORAGE_TYPE: ${LIMS_STORAGE_TYPE:-local}
+      LIMS_FILE_DIR: /app/lims-files
+      LIMS_JWT_SECRET: ${LIMS_JWT_SECRET:-lims-environmental-testing-jwt-secret-key-please-change-in-production-0123456789}
+      ONLYOFFICE_URL: ${ONLYOFFICE_URL:-http://onlyoffice-ds}
+      LIMS_API_URL: ${LIMS_API_URL:-http://lims-backend:8080/api}
+      TZ: Asia/Shanghai
+    volumes:
+      - lims-files:/app/lims-files
+    ports:
+      - "8080:8080"
+    networks:
+      - lims-net
+
+  lims-web:
+    build:
+      context: ../lims-web
+    container_name: lims-web
+    restart: unless-stopped
+    depends_on:
+      - lims-backend
+    ports:
+      - "80:80"
+    networks:
+      - lims-net
+
+volumes:
+  lims-files:
+
+networks:
+  lims-net:
+    driver: bridge

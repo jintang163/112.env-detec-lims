@@ -1,0 +1,60 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: lims-backend
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: ASSIGN_ID
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+lims:
+  jwt:
+    # HS512 密钥(生产环境通过环境变量 LIMS_JWT_SECRET 覆盖)
+    secret: lims-environmental-testing-jwt-secret-key-please-change-in-production-0123456789
+    # token 有效期(分钟) 12h
+    expire-minutes: 720
+  storage:
+    # local=本地磁盘(默认,免MinIO启动) / minio
+    type: ${LIMS_STORAGE_TYPE:local}
+    local-dir: ${LIMS_FILE_DIR:./lims-files}
+    bucket: lims
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ROOT_USER:minioadmin}
+    secret-key: ${MINIO_ROOT_PASSWORD:minioadmin}
+    public-url: ${MINIO_PUBLIC_URL:http://localhost:9000}
+  onlyoffice:
+    # OnlyOffice Document Server 地址(前端编辑组件使用)
+    doc-server-url: ${ONLYOFFICE_URL:http://localhost:8000}
+    # 文档服务器能访问到本后端的回调/下载地址(docker 部署时用服务名)
+    api-callback-url: ${LIMS_API_URL:http://localhost:8080/api}
+  # TDengine 时序库(阶段二启用): spring.datasource.dynamic 方式接入
+  tdengine:
+    url: jdbc:TAOS-RS://${TDENGINE_HOST:localhost}:6041/lims_iot?user=root&password=taosdata
+    enabled: false
+
+logging:
+  level:
+    com.lims: debug

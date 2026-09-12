@@ -1,0 +1,136 @@
+# =====================================================================
+# 完整一键栈(开发/演示/私有化交付): 中间件均使用官方镜像
+#   MySQL 8(首次启动自动执行 mysql/init 下的建表与演示数据)
+#   Redis 7 / MinIO / TDengine 3(阶段二启用) / OnlyOffice Docs / 后端 / PC前端
+# 启动:
+#   cd deploy && docker compose up -d
+#   PC: http://localhost   后端: http://localhost:8080/api
+#   MinIO控制台: http://localhost:9001 (minioadmin/minioadmin)
+#   OnlyOffice健康检查: http://localhost:8000/healthcheck
+# =====================================================================
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: lims-mysql
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --lower_case_table_names=1
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - lims-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: lims-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - lims-net
+
+  minio:
+    image: minio/minio:RELEASE.2024-08-17T01-24-54Z
+    container_name: lims-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - lims-net
+
+  # TDengine 时序库: 阶段二环境在线监测数据使用(本阶段后端仅引入驱动, 默认不连接)
+  tdengine:
+    image: tdengine/tdengine:3.3.2.0
+    container_name: lims-tdengine
+    restart: unless-stopped
+    hostname: tdengine
+    ports:
+      - "6030:6030"
+      - "6041:6041"
+      - "6043-6049:6043-6049"
+      - "6043-6049:6043-6049/udp"
+    volumes:
+      - taos-data:/var/lib/taos
+    networks:
+      - lims-net
+
+  onlyoffice-ds:
+    image: onlyoffice/documentserver:8.2
+    container_name: onlyoffice-ds
+    restart: unless-stopped
+    environment:
+      JWT_ENABLED: "false"
+      USE_UNAUTHORIZED_STORAGE: "true"
+    ports:
+      - "8000:80"
+    networks:
+      - lims-net
+
+  lims-backend:
+    build:
+      context: ../lims-backend
+    container_name: lims-backend
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LIMS_STORAGE_TYPE: minio
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_PUBLIC_URL: http://localhost:9000
+      TDENGINE_HOST: tdengine
+      ONLYOFFICE_URL: http://onlyoffice-ds
+      LIMS_API_URL: http://lims-backend:8080/api
+      TZ: Asia/Shanghai
+    volumes:
+      - lims-files:/app/lims-files
+    ports:
+      - "8080:8080"
+    networks:
+      - lims-net
+
+  lims-web:
+    build:
+      context: ../lims-web
+    container_name: lims-web
+    restart: unless-stopped
+    depends_on:
+      - lims-backend
+    ports:
+      - "80:80"
+    networks:
+      - lims-net
+
+volumes:
+  mysql-data:
+  redis-data:
+  minio-data:
+  taos-data:
+  lims-files:
+
+networks:
+  lims-net:
+    driver: bridge
