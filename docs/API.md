@@ -85,6 +85,22 @@ REVIEWING 可驳回到 REVIEW_REJECTED；在途可 CANCELLED。
 - POST /approval/act `{taskId, approve, comment}`
 - GET /approval/timeline/{instanceId}
 
+## 现场采样 /sampling（PC）
+
+状态：计划 DRAFT→ISSUED→CANCELLED；任务 ASSIGNED→SUBMITTED→HANDED；样品 COLLECTED→RECEIVED；交接 PENDING→CONFIRMED/REJECTED。
+
+- GET /sampling/plans（keyword/status/planDateStart/planDateEnd）；GET /sampling/plans/{id}（含 points/items/equipments/tasks）；POST /sampling/plans；POST /sampling/plans/{id}/issue；POST /sampling/plans/{id}/cancel
+- GET /sampling/tasks（keyword/status/assigneeId/planId/orderId）；GET /sampling/tasks/{id}（整包含样品照片）；POST /sampling/tasks/assign `{planId,assigneeId,remark}`
+- GET /sampling/handovers；GET /sampling/handovers/{id}；POST /sampling/handovers/{id}/confirm `{remark}`（样品接收、任务HANDED、委托自动START_TESTING）；POST /sampling/handovers/{id}/reject `{reason}`
+- GET /equipment（category/status）；POST /equipment；GET /equipment/options；GET /equipment/checkouts；POST /equipment/checkouts；POST /equipment/checkouts/{id}/return `{checkResult:OK/DAMAGED/MISSING,returnRemark}`
+
+## 现场采样 /mobile/sampling（移动端）
+
+- GET /mobile/sampling/my-tasks 派给我的任务；GET /mobile/sampling/tasks/{id} 离线整包；POST /mobile/sampling/tasks/{id}/download
+- POST /mobile/sampling/samples 提交样品（clientUuid 幂等，photoFileIds 晚绑定 SAMPLE_PHOTO）
+- POST /mobile/sampling/tasks/{id}/submit；POST /mobile/sampling/handovers `{taskId,sampleStatus,sigFileId}`；GET /mobile/sampling/handovers/my
+- GET /mobile/sampling/samples/{code} 扫码核验；GET /dict/{code} 字典（保存条件等）
+
 ## 移动端 /mobile
 
 - GET /mobile/sampling-tasks 采样任务（离线时返回缓存）

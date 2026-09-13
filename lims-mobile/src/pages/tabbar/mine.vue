@@ -7,31 +7,50 @@
         <view class="muted">@{{ user?.username }} · {{ (user?.roles || []).join(',') }}</view>
       </view>
     </view>
+
     <view class="card menu">
       <view class="menu-item" @tap="goApproval"><text>✅ 审批待办</text><text class="muted">›</text></view>
-      <view class="menu-item" @tap="checkOffline"><text>📴 离线缓存点位</text><text class="muted">›</text></view>
+      <view class="menu-item" @tap="goTasks"><text>📋 我的采样任务</text><text class="muted">›</text></view>
+      <view class="menu-item" @tap="goTasks"><text>📴 离线任务包</text><text class="muted">{{ bundleCount }} 个 ›</text></view>
+      <view class="menu-item" @tap="goTasks">
+        <text>⏳ 待同步样品</text>
+        <text :class="pendingSamples ? 'warn' : 'muted'">{{ pendingSamples }} 条 ›</text>
+      </view>
+      <view class="menu-item" @tap="checkOffline"><text>📍 离线缓存点位</text><text class="muted">{{ pointCount }} 条 ›</text></view>
       <view class="menu-item" @tap="logout"><text style="color: #f5222d">🚪 退出登录</text><text class="muted">›</text></view>
     </view>
     <view class="muted" style="text-align: center; margin-top: 40rpx; font-size: 22rpx">
-      LIMS 移动作业端 v1.0 · 采样坐标 BD-09
+      LIMS 移动作业端 v1.1 · 现场采样 · 坐标 BD-09
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
-import { listLocalPoints } from '@/utils/db'
+import { listLocalPoints, listPendingSamples, listTaskBundles } from '@/utils/db'
 
 const userStore = useUserStore()
 const user = computed(() => userStore.info)
+const pointCount = ref(0)
+const bundleCount = ref(0)
+const pendingSamples = ref(0)
+
+async function refreshStats() {
+  pointCount.value = (await listLocalPoints()).length
+  bundleCount.value = (await listTaskBundles()).length
+  pendingSamples.value = (await listPendingSamples()).length
+}
 
 function goApproval() {
   uni.navigateTo({ url: '/pages/approval/todo' })
 }
+function goTasks() {
+  uni.switchTab({ url: '/pages/tabbar/tasks' })
+}
 async function checkOffline() {
-  const pts = await listLocalPoints()
-  uni.showToast({ title: `已缓存点位 ${pts.length} 条`, icon: 'none' })
+  uni.showToast({ title: `已缓存点位 ${pointCount.value} 条`, icon: 'none' })
 }
 function logout() {
   uni.showModal({
@@ -45,6 +64,8 @@ function logout() {
     }
   })
 }
+
+onShow(refreshStats)
 </script>
 
 <style lang="scss" scoped>
@@ -65,4 +86,5 @@ function logout() {
   border-bottom: 1rpx solid #f0f0f0;
 }
 .menu-item:last-child { border-bottom: none; }
+.warn { color: #fa8c16; font-weight: 700; }
 </style>

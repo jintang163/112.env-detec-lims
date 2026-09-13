@@ -564,3 +564,238 @@ CREATE TABLE biz_approval_record (
   create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_instance (instance_id)
 ) COMMENT '审批流转记录(时间线)';
+
+-- =====================================================================
+-- 七、现场采样管理（采样计划/任务派工/现场样品/样品交接/设备领用）
+-- =====================================================================
+
+-- 采样计划
+DROP TABLE IF EXISTS biz_sampling_plan;
+CREATE TABLE biz_sampling_plan (
+  id              BIGINT        NOT NULL PRIMARY KEY COMMENT '计划ID(雪花)',
+  code            VARCHAR(32)   NOT NULL COMMENT '计划编号 CYJHyyyy-xxxx',
+  order_id        BIGINT        NOT NULL COMMENT '委托单ID',
+  title           VARCHAR(200)  NOT NULL COMMENT '计划名称(默认项目名称)',
+  customer_id     BIGINT        NULL,
+  customer_name   VARCHAR(128)  NULL COMMENT '客户名称快照',
+  plan_date       DATE          NOT NULL COMMENT '采样日期',
+  start_time      DATETIME      NULL COMMENT '计划开始时间',
+  end_time        DATETIME      NULL COMMENT '计划结束时间',
+  contact_person  VARCHAR(64)   NULL COMMENT '现场联系人快照',
+  contact_phone   VARCHAR(32)   NULL,
+  address         VARCHAR(255)  NULL COMMENT '采样地址快照',
+  lng             DECIMAL(12,7) NULL COMMENT '经度(BD-09)',
+  lat             DECIMAL(12,7) NULL COMMENT '纬度(BD-09)',
+  weather         VARCHAR(64)   NULL COMMENT '天气情况',
+  status          VARCHAR(16)   NOT NULL DEFAULT 'DRAFT'
+                  COMMENT 'DRAFT草稿/ISSUED已下发/CANCELLED已取消',
+  remark          VARCHAR(512)  NULL,
+  create_by       VARCHAR(64)   NULL,
+  update_by       VARCHAR(64)   NULL,
+  create_time     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted         TINYINT       NOT NULL DEFAULT 0,
+  UNIQUE KEY uk_code (code),
+  KEY idx_order (order_id),
+  KEY idx_status (status),
+  KEY idx_plan_date (plan_date)
+) COMMENT '采样计划';
+
+-- 计划点位清单
+DROP TABLE IF EXISTS biz_sampling_plan_point;
+CREATE TABLE biz_sampling_plan_point (
+  id          BIGINT        NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  plan_id     BIGINT        NOT NULL,
+  point_id    BIGINT        NULL COMMENT '关联委托点位ID(现场新增可空)',
+  name        VARCHAR(128)  NOT NULL COMMENT '点位名称(如 1#排气筒)',
+  lng         DECIMAL(12,7) NOT NULL COMMENT 'BD-09经度',
+  lat         DECIMAL(12,7) NOT NULL COMMENT 'BD-09纬度',
+  addr_desc   VARCHAR(255)  NULL,
+  sort_no     INT           NOT NULL DEFAULT 0,
+  KEY idx_plan (plan_id)
+) COMMENT '采样计划点位清单';
+
+-- 计划检测项/样品要求
+DROP TABLE IF EXISTS biz_sampling_plan_item;
+CREATE TABLE biz_sampling_plan_item (
+  id             BIGINT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  plan_id        BIGINT       NOT NULL,
+  point_id       BIGINT       NULL COMMENT '所属计划点位ID(空表示通用)',
+  order_item_id  BIGINT       NULL COMMENT '关联委托检测项ID',
+  item_name      VARCHAR(200) NOT NULL COMMENT '检测项目/参数',
+  sample_name    VARCHAR(128) NULL COMMENT '样品名称',
+  sample_qty     INT          NULL COMMENT '样品数量',
+  container      VARCHAR(128) NULL COMMENT '采样容器(如 棕色玻璃瓶/聚乙烯瓶)',
+  preservation   VARCHAR(128) NULL COMMENT '保存条件(常温/冷藏/冷冻/避光/密封)',
+  qc_required    TINYINT      NOT NULL DEFAULT 0 COMMENT '是否需要质控样',
+  sort_no        INT          NOT NULL DEFAULT 0,
+  KEY idx_plan (plan_id)
+) COMMENT '采样计划检测项/样品要求';
+
+-- 计划携带设备/容器
+DROP TABLE IF EXISTS biz_sampling_plan_equipment;
+CREATE TABLE biz_sampling_plan_equipment (
+  id              BIGINT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  plan_id         BIGINT       NOT NULL,
+  equipment_id    BIGINT       NOT NULL,
+  equipment_name  VARCHAR(128) NOT NULL COMMENT '设备名称快照',
+  qty             INT          NOT NULL DEFAULT 1 COMMENT '数量',
+  KEY idx_plan (plan_id)
+) COMMENT '采样计划携带设备/容器';
+
+-- 采样任务(派工)
+DROP TABLE IF EXISTS biz_sampling_task;
+CREATE TABLE biz_sampling_task (
+  id             BIGINT       NOT NULL PRIMARY KEY COMMENT '任务ID(雪花)',
+  code           VARCHAR(32)  NOT NULL COMMENT '任务编号 CYRWyyyy-xxxx(即样品编号前缀)',
+  plan_id        BIGINT       NOT NULL,
+  order_id       BIGINT       NOT NULL,
+  assignee_id    BIGINT       NOT NULL COMMENT '采样员ID',
+  assignee_name  VARCHAR(64)  NOT NULL COMMENT '采样员姓名快照',
+  assigned_by    VARCHAR(64)  NULL COMMENT '派工人',
+  assigned_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  downloaded_at  DATETIME     NULL COMMENT '移动端下载时间',
+  started_at     DATETIME     NULL COMMENT '开始采样时间(首次提交样品)',
+  submitted_at   DATETIME     NULL COMMENT '采样完成提交时间',
+  status         VARCHAR(16)  NOT NULL DEFAULT 'ASSIGNED'
+                 COMMENT 'ASSIGNED已分配/SUBMITTED已采样待交接/HANDED已交接/CANCELLED已取消',
+  remark         VARCHAR(512) NULL,
+  create_by      VARCHAR(64)  NULL,
+  update_by      VARCHAR(64)  NULL,
+  create_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted        TINYINT      NOT NULL DEFAULT 0,
+  UNIQUE KEY uk_code (code),
+  KEY idx_plan (plan_id),
+  KEY idx_order (order_id),
+  KEY idx_assignee (assignee_id),
+  KEY idx_status (status)
+) COMMENT '采样任务分配';
+
+-- 现场样品
+DROP TABLE IF EXISTS biz_field_sample;
+CREATE TABLE biz_field_sample (
+  id               BIGINT        NOT NULL PRIMARY KEY COMMENT '样品ID(雪花)',
+  sample_code      VARCHAR(48)   NOT NULL COMMENT '样品编号/二维码内容(任务号-序号)',
+  client_uuid      VARCHAR(40)   NOT NULL COMMENT '端上UUID,离线提交幂等键',
+  task_id          BIGINT        NOT NULL,
+  plan_id          BIGINT        NOT NULL,
+  order_id         BIGINT        NOT NULL,
+  point_id         BIGINT        NULL COMMENT '计划点位ID',
+  point_name       VARCHAR(128)  NULL,
+  entrust_item_id  BIGINT        NULL COMMENT '委托检测项ID',
+  item_name        VARCHAR(200)  NULL COMMENT '检测项目',
+  sample_name      VARCHAR(128)  NULL COMMENT '样品名称',
+  sampling_time    DATETIME      NULL COMMENT '采样时间',
+  lng              DECIMAL(12,7) NULL COMMENT '实际采样经度(BD-09)',
+  lat              DECIMAL(12,7) NULL COMMENT '实际采样纬度(BD-09)',
+  addr_desc        VARCHAR(255)  NULL,
+  temperature      DECIMAL(5,2)  NULL COMMENT '现场温度(℃)',
+  ph               DECIMAL(5,2)  NULL COMMENT '现场pH',
+  params_json      TEXT          NULL COMMENT '其他现场参数键值JSON',
+  container        VARCHAR(128)  NULL COMMENT '容器',
+  storage_condition VARCHAR(128) NULL COMMENT '保存条件',
+  is_qc            TINYINT       NOT NULL DEFAULT 0 COMMENT '是否质控样',
+  qc_type          VARCHAR(16)   NULL COMMENT 'BLANK全程序空白/PARALLEL平行样/SPIKE加标样',
+  status           VARCHAR(16)   NOT NULL DEFAULT 'COLLECTED'
+                   COMMENT 'COLLECTED已采集/RECEIVED已接收',
+  handover_id      BIGINT        NULL COMMENT '交接单ID',
+  sampler_id       BIGINT        NULL,
+  sampler_name     VARCHAR(64)   NULL,
+  remark           VARCHAR(512)  NULL,
+  create_by        VARCHAR(64)   NULL,
+  update_by        VARCHAR(64)   NULL,
+  create_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted          TINYINT       NOT NULL DEFAULT 0,
+  UNIQUE KEY uk_sample_code (sample_code),
+  UNIQUE KEY uk_client_uuid (client_uuid),
+  KEY idx_task (task_id),
+  KEY idx_order (order_id),
+  KEY idx_handover (handover_id),
+  KEY idx_status (status)
+) COMMENT '现场样品';
+
+-- 样品交接单
+DROP TABLE IF EXISTS biz_sample_handover;
+CREATE TABLE biz_sample_handover (
+  id               BIGINT       NOT NULL PRIMARY KEY COMMENT '交接单ID(雪花)',
+  code             VARCHAR(32)  NOT NULL COMMENT '交接单编号 JJyyyy-xxxx',
+  task_id          BIGINT       NOT NULL,
+  plan_id          BIGINT       NOT NULL,
+  order_id         BIGINT       NOT NULL,
+  sample_count     INT          NOT NULL DEFAULT 0 COMMENT '交接样品数量',
+  sample_status    VARCHAR(255) NULL COMMENT '样品状态描述(完好/异常说明)',
+  handover_by_id   BIGINT       NULL COMMENT '移交人(采样员)',
+  handover_by_name VARCHAR(64)  NULL,
+  handover_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  sig_file_id      BIGINT       NULL COMMENT '采样员签名文件ID(sys_file)',
+  receiver_id      BIGINT       NULL COMMENT '接收人(样品管理员)',
+  receiver_name    VARCHAR(64)  NULL,
+  receive_at       DATETIME     NULL,
+  receiver_remark  VARCHAR(512) NULL COMMENT '接收备注/拒收原因',
+  status           VARCHAR(16)  NOT NULL DEFAULT 'PENDING'
+                   COMMENT 'PENDING待接收/CONFIRMED已接收/REJECTED已拒收',
+  create_by        VARCHAR(64)  NULL,
+  update_by        VARCHAR(64)  NULL,
+  create_time      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted          TINYINT      NOT NULL DEFAULT 0,
+  UNIQUE KEY uk_code (code),
+  KEY idx_task (task_id),
+  KEY idx_order (order_id),
+  KEY idx_status (status)
+) COMMENT '样品交接单';
+
+-- 采样设备/容器台账
+DROP TABLE IF EXISTS biz_equipment;
+CREATE TABLE biz_equipment (
+  id             BIGINT       NOT NULL PRIMARY KEY COMMENT '设备ID(雪花)',
+  code           VARCHAR(32)  NOT NULL COMMENT '设备编号 SByyyy-xxxx',
+  name           VARCHAR(128) NOT NULL COMMENT '设备/容器名称',
+  category       VARCHAR(16)  NOT NULL DEFAULT 'DEVICE' COMMENT 'DEVICE设备/CONTAINER容器',
+  spec           VARCHAR(128) NULL COMMENT '规格型号',
+  unit           VARCHAR(16)  NULL DEFAULT '台' COMMENT '单位',
+  qty_total      INT          NOT NULL DEFAULT 1 COMMENT '总数量',
+  qty_available  INT          NOT NULL DEFAULT 1 COMMENT '可用数量',
+  status         VARCHAR(16)  NOT NULL DEFAULT 'NORMAL' COMMENT 'NORMAL正常/MAINTENANCE维修中/SCRAPPED报废',
+  keeper_id      BIGINT       NULL COMMENT '保管人ID',
+  keeper_name    VARCHAR(64)  NULL,
+  purchase_date  DATE         NULL,
+  remark         VARCHAR(512) NULL,
+  create_by      VARCHAR(64)  NULL,
+  update_by      VARCHAR(64)  NULL,
+  create_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted        TINYINT      NOT NULL DEFAULT 0,
+  UNIQUE KEY uk_code (code),
+  KEY idx_category (category),
+  KEY idx_status (status)
+) COMMENT '采样设备/容器台账';
+
+-- 设备领用归还记录
+DROP TABLE IF EXISTS biz_equipment_checkout;
+CREATE TABLE biz_equipment_checkout (
+  id                   BIGINT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  equipment_id         BIGINT       NOT NULL,
+  equipment_name       VARCHAR(128) NOT NULL COMMENT '设备名称快照',
+  plan_id              BIGINT       NULL COMMENT '关联采样计划',
+  task_id              BIGINT       NULL COMMENT '关联采样任务',
+  qty                  INT          NOT NULL DEFAULT 1,
+  checkout_by_id       BIGINT       NULL,
+  checkout_by_name     VARCHAR(64)  NULL,
+  checkout_time        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expected_return_time DATETIME     NULL COMMENT '预计归还时间',
+  checkout_remark      VARCHAR(255) NULL,
+  status               VARCHAR(16)  NOT NULL DEFAULT 'BORROWED' COMMENT 'BORROWED已领用/RETURNED已归还',
+  return_time          DATETIME     NULL,
+  return_by_id         BIGINT       NULL,
+  return_by_name       VARCHAR(64)  NULL,
+  check_result         VARCHAR(16)   NULL COMMENT 'OK完好/DAMAGED损坏/MISSING缺失',
+  return_remark        VARCHAR(255) NULL,
+  create_by            VARCHAR(64)  NULL,
+  create_time          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_equipment (equipment_id),
+  KEY idx_plan (plan_id),
+  KEY idx_status (status)
+) COMMENT '采样设备领用归还记录';

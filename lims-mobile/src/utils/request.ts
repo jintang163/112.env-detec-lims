@@ -68,10 +68,60 @@ export function request<T = any>(opts: ApiOptions): Promise<T> {
   })
 }
 
+/**
+ * 文件上传(uni.uploadFile 不走 request() 的 JSON 通道)。
+ * 返回后端 SysFile; 网络失败时 reject, 由调用方决定是否进入离线队列。
+ */
+export function uploadFile(
+  filePath: string,
+  formData?: Record<string, any>
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    uni.uploadFile({
+      url: BASE_URL + '/files/upload',
+      filePath,
+      name: 'file',
+      formData: formData || {},
+      header: { Authorization: getToken() ? `Bearer ${getToken()}` : '' },
+      success: (res: any) => {
+        try {
+          const body = JSON.parse(res.data)
+          if (res.statusCode === 200 && body?.code === 200) {
+            resolve(body.data)
+          } else {
+            reject(new Error(body?.message || '上传失败'))
+          }
+        } catch (e) {
+          reject(new Error('上传响应解析失败'))
+        }
+      },
+      fail: () => reject(new Error('network error'))
+    })
+  })
+}
+
 export const api = {
   login: (username: string, password: string) =>
     request({ url: '/auth/login', method: 'POST', data: { username, password } }),
   info: () => request({ url: '/auth/info' }),
+  dict: (code: string) => request({ url: `/dict/${code}`, offlineCache: true }),
+  // —— 现场采样新接口 ——
+  myTasks: (params: any) =>
+    request({ url: '/mobile/sampling/my-tasks', data: params, offlineCache: true }),
+  taskDetail: (id: number) =>
+    request({ url: `/mobile/sampling/tasks/${id}`, offlineCache: true }),
+  markDownloaded: (id: number) =>
+    request({ url: `/mobile/sampling/tasks/${id}/download`, method: 'POST' }),
+  submitSample: (data: any) =>
+    request({ url: '/mobile/sampling/samples', method: 'POST', data }),
+  submitTask: (id: number, remark?: string) =>
+    request({ url: `/mobile/sampling/tasks/${id}/submit`, method: 'POST', data: { remark } }),
+  createHandover: (data: any) =>
+    request({ url: '/mobile/sampling/handovers', method: 'POST', data }),
+  myHandovers: () => request({ url: '/mobile/sampling/handovers/my' }),
+  sampleByCode: (code: string) =>
+    request({ url: `/mobile/sampling/samples/${encodeURIComponent(code)}` }),
+  // —— 旧版委托采样(点位采集仍复用) ——
   samplingTasks: (params: any) =>
     request({ url: '/mobile/sampling-tasks', data: params, offlineCache: true }),
   entrustDetail: (id: number) =>

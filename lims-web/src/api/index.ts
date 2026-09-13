@@ -113,3 +113,38 @@ export const systemApi = {
   operationLogs: (params: any) =>
     http.get('/system/operation-logs', { params })
 }
+
+// ========== 现场采样管理 ==========
+export const samplingPlanApi = {
+  page: (params: any) => http.get('/sampling/plans', { params }),
+  detail: (id: number | string) => http.get(`/sampling/plans/${id}`),
+  save: (data: any) => http.post('/sampling/plans', data),
+  issue: (id: number) => http.post(`/sampling/plans/${id}/issue`),
+  cancel: (id: number) => http.post(`/sampling/plans/${id}/cancel`)
+}
+
+export const samplingTaskApi = {
+  page: (params: any) => http.get('/sampling/tasks', { params }),
+  detail: (id: number | string) => http.get(`/sampling/tasks/${id}`),
+  assign: (data: { planId: number; assigneeId: number; remark?: string }) =>
+    http.post('/sampling/tasks/assign', data)
+}
+
+export const handoverApi = {
+  page: (params: any) => http.get('/sampling/handovers', { params }),
+  detail: (id: number | string) => http.get(`/sampling/handovers/${id}`),
+  confirm: (id: number, remark?: string) =>
+    http.post(`/sampling/handovers/${id}/confirm`, { remark }),
+  reject: (id: number, reason: string) =>
+    http.post(`/sampling/handovers/${id}/reject`, { reason })
+}
+
+export const equipmentApi = {
+  page: (params: any) => http.get('/equipment', { params }),
+  options: (category?: string) => http.get('/equipment/options', { params: { category } }),
+  save: (data: any) => http.post('/equipment', data),
+  checkoutPage: (params: any) => http.get('/equipment/checkouts', { params }),
+  checkout: (data: any) => http.post('/equipment/checkouts', data),
+  doReturn: (id: number, data: { checkResult: string; returnRemark?: string }) =>
+    http.post(`/equipment/checkouts/${id}/return`, data)
+}

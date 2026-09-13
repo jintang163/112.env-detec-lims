@@ -75,7 +75,22 @@ public class OperationLogAspect {
             {"POST", "/files/upload", "文件", "上传文件"},
 
             {"POST", "/mobile/entrusts/*/points", "移动采样", "提交采样点位"},
-            {"POST", "/mobile/entrusts/*/finish-sampling", "移动采样", "完成采样"}
+            {"POST", "/mobile/entrusts/*/finish-sampling", "移动采样", "完成采样"},
+            {"POST", "/mobile/sampling/tasks/*/download", "移动采样", "下载采样任务"},
+            {"POST", "/mobile/sampling/samples", "移动采样", "提交现场样品"},
+            {"POST", "/mobile/sampling/tasks/*/submit", "移动采样", "完成采样任务"},
+            {"POST", "/mobile/sampling/handovers", "移动采样", "发起样品交接"},
+
+            {"POST", "/sampling/plans", "采样计划", "保存采样计划"},
+            {"POST", "/sampling/plans/*/issue", "采样计划", "下发采样计划"},
+            {"POST", "/sampling/plans/*/cancel", "采样计划", "取消采样计划"},
+            {"POST", "/sampling/tasks/assign", "采样任务", "任务派工"},
+            {"POST", "/sampling/handovers/*/confirm", "样品交接", "接收确认"},
+            {"POST", "/sampling/handovers/*/reject", "样品交接", "拒收交接"},
+
+            {"POST", "/equipment", "设备管理", "保存设备台账"},
+            {"POST", "/equipment/checkouts", "设备管理", "设备领用登记"},
+            {"POST", "/equipment/checkouts/*/return", "设备管理", "设备归还检查"}
     };
 
     /** 即使匹配不到规则也不记录的路径(纯个人/服务器间/不落库动作) */

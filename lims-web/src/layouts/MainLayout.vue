@@ -33,6 +33,17 @@
           <span>审批中心</span>
           <a-badge v-if="todoCount > 0" :count="todoCount" :offset="[12, -2]" />
         </a-menu-item>
+        <a-sub-menu key="sampling-group">
+          <template #title><EnvironmentOutlined /><span>现场采样</span></template>
+          <a-menu-item key="/sampling/plan">采样计划</a-menu-item>
+          <a-menu-item key="/sampling/task">任务分配</a-menu-item>
+          <a-menu-item key="/sampling/handover">样品交接</a-menu-item>
+        </a-sub-menu>
+        <a-sub-menu key="equipment-group">
+          <template #title><ToolOutlined /><span>设备管理</span></template>
+          <a-menu-item key="/equipment">设备台账</a-menu-item>
+          <a-menu-item key="/equipment/checkout">领用归还</a-menu-item>
+        </a-sub-menu>
         <a-menu-item key="/notification">
           <BellOutlined /><span>消息通知</span>
         </a-menu-item>
@@ -94,6 +105,8 @@ import {
   CalculatorOutlined,
   CheckSquareOutlined,
   BellOutlined,
+  EnvironmentOutlined,
+  ToolOutlined,
   SettingOutlined,
   FileSearchOutlined
 } from '@ant-design/icons-vue'

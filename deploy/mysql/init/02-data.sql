@@ -188,3 +188,103 @@ INSERT INTO biz_entrust_status_log(order_id,from_status,to_status,action,operato
 (4001,'DRAFT','REVIEWING','SUBMIT',1,'系统管理员','提交合同评审'),
 (4001,'REVIEWING','ACCEPTED','REVIEW_APPROVE',4,'王评审员','评审通过,受理'),
 (4001,'ACCEPTED','SAMPLING','START_SAMPLING',6,'钱采样员','采样队出发');
+
+-- =====================================================================
+-- 现场采样管理种子数据
+-- =====================================================================
+
+-- 样品管理员用户/角色
+INSERT INTO sys_user(id,username,password,real_name,dept_id,phone,status) VALUES
+(7,'samplemgr','$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2','孔样品管理员',5,'13800000007',1);
+INSERT INTO sys_role(id,role_code,role_name,data_scope,remark) VALUES
+(7,'ROLE_SAMPLE_MANAGER','样品管理员',1,'样品交接接收/设备台账');
+INSERT INTO sys_user_role(user_id,role_id) VALUES (7,7);
+
+-- 现场采样/设备 菜单与权限(700段)
+INSERT INTO sys_permission(id,parent_id,perm_code,perm_name,perm_type,path,icon,sort_no) VALUES
+(700,0,'sampling','现场采样',1,'/sampling/plan','EnvironmentOutlined',60),
+(701,700,'sampling:plan:view','采样计划查询',2,NULL,NULL,1),
+(702,700,'sampling:plan:save','采样计划制定',2,NULL,NULL,2),
+(703,700,'sampling:plan:issue','计划下发取消',2,NULL,NULL,3),
+(704,700,'sampling:task:view','采样任务查询',2,NULL,NULL,4),
+(705,700,'sampling:task:assign','采样任务分配',2,NULL,NULL,5),
+(706,700,'sampling:handover:view','样品交接查询',2,NULL,NULL,6),
+(707,700,'sampling:handover:confirm','样品接收确认',2,NULL,NULL,7),
+(720,0,'equipment','设备管理',1,'/equipment','ToolOutlined',70),
+(721,720,'equipment:view','设备查询',2,NULL,NULL,1),
+(722,720,'equipment:save','设备台账维护',2,NULL,NULL,2),
+(723,720,'equipment:checkout','设备领用归还',2,NULL,NULL,3);
+
+-- admin 的全量 SELECT 早于本段权限插入, 此处补齐 700 段; 主管/采样员/样品管理员按需授予
+INSERT INTO sys_role_permission(role_id,permission_id)
+SELECT 1,id FROM sys_permission WHERE id BETWEEN 700 AND 723;
+INSERT INTO sys_role_permission(role_id,permission_id) VALUES
+(2,700),(2,701),(2,702),(2,703),(2,704),(2,705),(2,706),(2,707),(2,720),(2,721),(2,722),(2,723),
+(6,700),(6,701),(6,704),(6,706),
+(7,100),(7,400),(7,401),(7,700),(7,701),(7,704),(7,706),(7,707),(7,720),(7,721),(7,723);
+
+-- 采样相关字典
+INSERT INTO sys_dict_type(id,dict_code,dict_name) VALUES
+(7,'sampling_plan_status','采样计划状态'),(8,'sampling_task_status','采样任务状态'),
+(9,'handover_status','样品交接状态'),(10,'sample_status','样品状态'),
+(11,'equipment_status','设备状态'),(12,'equipment_category','设备分类'),
+(13,'qc_type','质控样类型'),(14,'storage_condition','样品保存条件');
+INSERT INTO sys_dict_data(id,dict_code,item_label,item_value,sort_no,css_class) VALUES
+(601,'sampling_plan_status','草稿','DRAFT',1,'default'),
+(602,'sampling_plan_status','已下发','ISSUED',2,'blue'),
+(603,'sampling_plan_status','已取消','CANCELLED',9,'error'),
+(611,'sampling_task_status','已分配','ASSIGNED',1,'cyan'),
+(612,'sampling_task_status','已采样待交接','SUBMITTED',2,'processing'),
+(613,'sampling_task_status','已交接','HANDED',3,'green'),
+(614,'sampling_task_status','已取消','CANCELLED',9,'default'),
+(621,'handover_status','待接收','PENDING',1,'processing'),
+(622,'handover_status','已接收','CONFIRMED',2,'green'),
+(623,'handover_status','已拒收','REJECTED',9,'error'),
+(631,'sample_status','已采集','COLLECTED',1,'cyan'),
+(632,'sample_status','已接收','RECEIVED',2,'green'),
+(641,'equipment_status','正常','NORMAL',1,'green'),
+(642,'equipment_status','维修中','MAINTENANCE',2,'orange'),
+(643,'equipment_status','报废','SCRAPPED',9,'default'),
+(651,'equipment_category','采样设备','DEVICE',1,'blue'),
+(652,'equipment_category','采样容器','CONTAINER',2,'cyan'),
+(661,'qc_type','全程序空白','BLANK',1,'default'),
+(662,'qc_type','平行样','PARALLEL',2,'purple'),
+(663,'qc_type','加标样','SPIKE',3,'orange'),
+(671,'storage_condition','常温','常温',1,'default'),
+(672,'storage_condition','冷藏(0~4℃)','冷藏',2,'cyan'),
+(673,'storage_condition','冷冻(≤-18℃)','冷冻',3,'blue'),
+(674,'storage_condition','避光','避光',4,'purple'),
+(675,'storage_condition','密封','密封',5,'geekblue');
+
+-- 设备/容器台账
+INSERT INTO biz_equipment(id,code,name,category,spec,unit,qty_total,qty_available,status,keeper_id,keeper_name,purchase_date,create_by) VALUES
+(7101,'SB20260001','大气综合采样器','DEVICE','TH-150F','台',2,2,'NORMAL',6,'钱采样员','2024-03-01','admin'),
+(7102,'SB20260002','自动烟尘烟气测试仪','DEVICE','崂应3012H','台',1,1,'NORMAL',6,'钱采样员','2023-11-20','admin'),
+(7103,'SB20260003','便携式pH计','DEVICE','PHBJ-260','台',2,2,'NORMAL',6,'钱采样员','2025-01-15','admin'),
+(7104,'SB20260004','棕色玻璃采样瓶','CONTAINER','500ml','个',100,100,'NORMAL',6,'钱采样员','2025-06-01','admin'),
+(7105,'SB20260005','聚乙烯采样瓶','CONTAINER','1L','个',200,200,'NORMAL',6,'钱采样员','2025-06-01','admin');
+
+-- 演示采样计划(委托4001, 已下发)
+INSERT INTO biz_sampling_plan(id,code,order_id,title,customer_id,customer_name,plan_date,start_time,end_time,
+ contact_person,contact_phone,address,lng,lat,weather,status,create_by)
+VALUES
+(7201,'CYJH20260001',4001,'华东制药9月废水废气例行采样',1001,'华东制药股份有限公司','2026-09-15','2026-09-15 09:00:00','2026-09-15 16:00:00',
+ '陈工','13900001111','科学园药谷路8号',118.8621000,31.9473000,'多云 24~30℃','ISSUED','admin');
+
+INSERT INTO biz_sampling_plan_point(plan_id,name,lng,lat,addr_desc,sort_no) VALUES
+(7201,'废水总排口',118.8619200,31.9472500,'厂区污水站排口',1),
+(7201,'1#锅炉排气筒',118.8624500,31.9476100,'锅炉房楼顶',2);
+
+INSERT INTO biz_sampling_plan_item(plan_id,item_name,sample_name,sample_qty,container,preservation,qc_required,sort_no) VALUES
+(7201,'水质pH值','废水',6,'聚乙烯瓶','常温',1,1),
+(7201,'水质化学需氧量(COD)','废水',6,'棕色玻璃采样瓶','冷藏',1,2),
+(7201,'有组织废气颗粒物','有组织废气',4,'滤膜采样筒','密封',0,3),
+(7201,'二噁英类','有组织废气',2,'棕色玻璃采样瓶','避光',1,4);
+
+INSERT INTO biz_sampling_plan_equipment(plan_id,equipment_id,equipment_name,qty) VALUES
+(7201,7101,'大气综合采样器',1),
+(7201,7104,'棕色玻璃采样瓶',8);
+
+-- 演示采样任务(派给钱采样员, 待执行)
+INSERT INTO biz_sampling_task(id,code,plan_id,order_id,assignee_id,assignee_name,assigned_by,status)
+VALUES (7301,'CYRW20260001',7201,4001,6,'钱采样员','admin','ASSIGNED');

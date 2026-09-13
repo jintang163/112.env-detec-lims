@@ -29,6 +29,26 @@
       "style": { "navigationBarTitleText": "采样点位采集(BD-09)" }
     },
     {
+      "path": "pages/sampling/detail",
+      "style": { "navigationBarTitleText": "采样任务详情" }
+    },
+    {
+      "path": "pages/sampling/sample-form",
+      "style": { "navigationBarTitleText": "现场采样记录" }
+    },
+    {
+      "path": "pages/sampling/label",
+      "style": { "navigationBarTitleText": "样品二维码标签" }
+    },
+    {
+      "path": "pages/sampling/handover",
+      "style": { "navigationBarTitleText": "样品交接" }
+    },
+    {
+      "path": "pages/sampling/scan",
+      "style": { "navigationBarTitleText": "样品扫码核验" }
+    },
+    {
       "path": "pages/approval/todo",
       "style": { "navigationBarTitleText": "审批待办" }
     }

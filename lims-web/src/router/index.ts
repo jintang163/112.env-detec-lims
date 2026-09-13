@@ -41,6 +41,21 @@ const router = createRouter({
           component: () => import('@/views/quote/detail.vue')
         },
         { path: 'approval', name: '审批中心', component: () => import('@/views/approval/index.vue') },
+        { path: 'sampling/plan', name: '采样计划', component: () => import('@/views/sampling/plan/index.vue') },
+        {
+          path: 'sampling/plan/edit/:id?',
+          name: '采样计划制定',
+          component: () => import('@/views/sampling/plan/edit.vue')
+        },
+        {
+          path: 'sampling/plan/detail/:id',
+          name: '采样计划详情',
+          component: () => import('@/views/sampling/plan/detail.vue')
+        },
+        { path: 'sampling/task', name: '采样任务分配', component: () => import('@/views/sampling/task/index.vue') },
+        { path: 'sampling/handover', name: '样品交接', component: () => import('@/views/sampling/handover/index.vue') },
+        { path: 'equipment', name: '设备台账', component: () => import('@/views/equipment/index.vue') },
+        { path: 'equipment/checkout', name: '设备领用归还', component: () => import('@/views/equipment/checkout.vue') },
         { path: 'notification', name: '消息通知', component: () => import('@/views/notification/index.vue') },
         {
           path: 'system/operation-log',

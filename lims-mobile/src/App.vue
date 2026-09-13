@@ -32,4 +32,5 @@ page {
 .tag-green { background: #f6ffed; color: #52c41a; }
 .tag-orange { background: #fff7e6; color: #fa8c16; }
 .tag-gray { background: #f5f5f5; color: #888; }
+.tag-cyan { background: #e6fffb; color: #08979c; }
 </style>

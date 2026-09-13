@@ -17,6 +17,7 @@
     "@dcloudio/uni-mp-weixin": "3.0.0-4080720251210001",
     "@qiun/ucharts": "^2.5.0-20230101",
     "pinia": "2.0.36",
+    "qrcode-generator": "^1.5.2",
     "vue": "^3.4.21",
     "vue-i18n": "^9.1.9"
   },
