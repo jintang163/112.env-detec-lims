@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.InputStream;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/files")
@@ -31,7 +31,7 @@ public class FileDownloadController {
             return ResponseEntity.notFound().build();
         }
         try (InputStream in = fileService.downloadStream(f)) {
-            return build(in.readAllBytes(), f.getOriginalName(), f.getContentType());
+            return build(StreamUtils.copyToByteArray(in), f.getOriginalName(), f.getContentType());
         }
     }
 
@@ -40,12 +40,13 @@ public class FileDownloadController {
     public ResponseEntity<byte[]> local(@PathVariable String objectName) throws Exception {
         try (InputStream in = storage.download(objectName)) {
             String name = objectName.substring(objectName.lastIndexOf('/') + 1);
-            return build(in.readAllBytes(), name, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            return build(StreamUtils.copyToByteArray(in), name, MediaType.APPLICATION_OCTET_STREAM_VALUE);
         }
     }
 
-    private ResponseEntity<byte[]> build(byte[] bytes, String name, String contentType) {
-        String encoded = URLEncoder.encode(name, StandardCharsets.UTF_8).replace("+", "%20");
+    private ResponseEntity<byte[]> build(byte[] bytes, String name, String contentType)
+            throws java.io.UnsupportedEncodingException {
+        String encoded = URLEncoder.encode(name, "UTF-8").replace("+", "%20");
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + encoded + "\"; filename*=UTF-8''" + encoded)

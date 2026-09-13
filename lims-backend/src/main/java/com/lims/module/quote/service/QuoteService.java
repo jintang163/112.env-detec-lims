@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +58,7 @@ public class QuoteService {
         q.setValidUntil(dto.getValidUntil());
         q.setRemark(dto.getRemark());
 
-        List<QuoteItem> items = dto.getItems() == null ? List.of() : dto.getItems();
+        List<QuoteItem> items = dto.getItems() == null ? Collections.<QuoteItem>emptyList() : dto.getItems();
         int idx = 1;
         BigDecimal total = BigDecimal.ZERO;
         for (QuoteItem item : items) {

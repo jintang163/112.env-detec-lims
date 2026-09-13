@@ -19,6 +19,7 @@
 | GET | /notifications | 通知分页 |
 | GET | /notifications/unread-count | 未读数 |
 | POST | /notifications/{id}/read、/notifications/read-all | 已读 |
+| GET | /system/operation-logs | 操作日志分页（仅管理员；写操作由 AOP 切面自动记录，参数 module/username/keyword） |
 
 ## 工作台
 

@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { h, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message, Modal } from 'ant-design-vue'
 import { approvalApi } from '@/api'
@@ -40,7 +40,7 @@ function openAct(record: any, approve: boolean) {
   let comment = ''
   Modal.confirm({
     title: approve ? `审批通过: ${record.title}` : `驳回: ${record.title}`,
-    content: (h: any) =>
+    content: () =>
       h('textarea', {
         class: 'ant-input',
         rows: 3,

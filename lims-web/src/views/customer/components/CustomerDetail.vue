@@ -108,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { customerApi } from '@/api'
 import { useUserStore } from '@/stores/user'
@@ -127,9 +127,10 @@ const poolLogs = ref<any[]>([])
 const followContent = ref('')
 const qualRef = ref()
 
-const levelColor = computed(() =>
-  ({ A: 'red', B: 'orange', C: 'blue', D: 'default' }[customer.value?.customerLevel] || 'default')
-)
+const levelColor = computed(() => {
+  const colors: Record<string, string> = { A: 'red', B: 'orange', C: 'blue', D: 'default' }
+  return colors[customer.value?.customerLevel] || 'default'
+})
 const typeText = computed(() => ({ 10: '企业', 20: '政府事业单位', 30: '个人' } as any)[customer.value?.customerType])
 
 function withHost(url: string) {
@@ -185,7 +186,7 @@ function openCredit(changeType: number) {
   import('ant-design-vue').then(({ Modal }) => {
     Modal.confirm({
       title: titles[changeType],
-      content: (h: any) =>
+      content: () =>
         h('div', [
           h('input', {
             class: 'ant-input',

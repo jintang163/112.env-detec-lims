@@ -42,6 +42,11 @@ const router = createRouter({
         },
         { path: 'approval', name: '审批中心', component: () => import('@/views/approval/index.vue') },
         { path: 'notification', name: '消息通知', component: () => import('@/views/notification/index.vue') },
+        {
+          path: 'system/operation-log',
+          name: '操作日志',
+          component: () => import('@/views/system/OperationLog.vue')
+        },
         { path: 'profile', name: '个人中心', component: () => import('@/views/profile/index.vue') }
       ]
     },

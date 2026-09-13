@@ -36,6 +36,12 @@
         <a-menu-item key="/notification">
           <BellOutlined /><span>消息通知</span>
         </a-menu-item>
+        <a-sub-menu v-if="userStore.roles.includes('ROLE_ADMIN')" key="system-group">
+          <template #title><SettingOutlined /><span>系统管理</span></template>
+          <a-menu-item key="/system/operation-log">
+            <FileSearchOutlined /><span>操作日志</span>
+          </a-menu-item>
+        </a-sub-menu>
       </a-menu>
     </a-layout-sider>
 
@@ -87,7 +93,9 @@ import {
   AuditOutlined,
   CalculatorOutlined,
   CheckSquareOutlined,
-  BellOutlined
+  BellOutlined,
+  SettingOutlined,
+  FileSearchOutlined
 } from '@ant-design/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useWebSocket } from '@/composables/useWebSocket'

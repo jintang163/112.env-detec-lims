@@ -33,7 +33,11 @@ public class OnlyOfficeService {
         doc.put("key", key);
         doc.put("title", fileName);
         doc.put("url", fileUrl.startsWith("http") ? fileUrl : apiCallbackUrl + fileUrl);
-        doc.put("permissions", Map.of("edit", edit, "download", true, "print", true));
+        Map<String, Object> permissions = new HashMap<>();
+        permissions.put("edit", edit);
+        permissions.put("download", true);
+        permissions.put("print", true);
+        doc.put("permissions", permissions);
 
         Map<String, Object> userConf = new HashMap<>();
         userConf.put("id", user);

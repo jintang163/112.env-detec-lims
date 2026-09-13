@@ -1,5 +1,9 @@
 package com.lims.module.entrust.service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,17 +26,27 @@ public final class EntrustStatus {
     public static final String CANCELLED = "CANCELLED";
 
     /** 动作 -> (前置状态集合 -> 目标状态) */
-    public static final Map<String, Transition> ACTIONS = Map.of(
-            "SUBMIT", new Transition(Set.of(DRAFT, REVIEW_REJECTED), REVIEWING),
-            // 评审通过节点全部通过时直接受理
-            "REVIEW_APPROVE", new Transition(Set.of(REVIEWING), ACCEPTED),
-            "REVIEW_REJECT", new Transition(Set.of(REVIEWING), REVIEW_REJECTED),
-            "START_SAMPLING", new Transition(Set.of(ACCEPTED), SAMPLING),
-            "START_TESTING", new Transition(Set.of(SAMPLING), TESTING),
-            "START_REPORT", new Transition(Set.of(TESTING), REPORTING),
-            "COMPLETE", new Transition(Set.of(REPORTING), COMPLETED),
-            "CANCEL", new Transition(Set.of(DRAFT, REVIEW_REJECTED, ACCEPTED, SAMPLING, TESTING, REPORTING), CANCELLED)
-    );
+    public static final Map<String, Transition> ACTIONS;
+
+    static {
+        Map<String, Transition> actions = new HashMap<>();
+        actions.put("SUBMIT", new Transition(setOf(DRAFT, REVIEW_REJECTED), REVIEWING));
+        // 评审通过节点全部通过时直接受理
+        actions.put("REVIEW_APPROVE", new Transition(setOf(REVIEWING), ACCEPTED));
+        actions.put("REVIEW_REJECT", new Transition(setOf(REVIEWING), REVIEW_REJECTED));
+        actions.put("START_SAMPLING", new Transition(setOf(ACCEPTED), SAMPLING));
+        actions.put("START_TESTING", new Transition(setOf(SAMPLING), TESTING));
+        actions.put("START_REPORT", new Transition(setOf(TESTING), REPORTING));
+        actions.put("COMPLETE", new Transition(setOf(REPORTING), COMPLETED));
+        actions.put("CANCEL", new Transition(setOf(DRAFT, REVIEW_REJECTED, ACCEPTED,
+                SAMPLING, TESTING, REPORTING), CANCELLED));
+        ACTIONS = Collections.unmodifiableMap(actions);
+    }
+
+    private static Set<String> setOf(String... states) {
+        Set<String> set = new HashSet<>(Arrays.asList(states));
+        return Collections.unmodifiableSet(set);
+    }
 
     public static String targetOf(String action, String currentStatus) {
         Transition t = ACTIONS.get(action);

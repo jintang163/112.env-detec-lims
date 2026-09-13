@@ -313,7 +313,7 @@ async function onSave(submit: boolean) {
     id = await entrustApi.save(payload)
   }
   if (submit) {
-    await entrustApi.submitReview(id)
+    await entrustApi.submitReview(id!)
     message.success('已提交合同评审')
   } else {
     message.success('草稿已保存')

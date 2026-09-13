@@ -11,10 +11,11 @@ common
 ├── ws          WebSocket 连接管理 + NotifyService(落库+异步推送)
 ├── formula     Aviator 封装(表达式缓存/编译校验/异常归一化)
 ├── word        Apache POI: {{占位符}} 替换 + {{item.xxx}} 明细行扩展 + docx文本解析
+├── log         OperationLogAspect: AOP 环绕写接口自动记录操作日志(sys_operation_log)
 └── util        单号生成(Redis 年序列: WT-/HT/BJ/KH)
 module
-├── system      用户/角色/权限/字典/通知/文件
-├── approval    通用顺序审批流(定义/实例/任务/记录 + 回调注册表)
+├── system      用户/角色/权限/字典/通知/文件/操作日志查询
+├── approval    通用顺序审批流(定义/实例/任务/记录 4 张表 + 回调注册表)
 ├── customer    客户/公海/资质/信用/跟进
 ├── contract    合同台账/履约收付款/变更/OnlyOffice
 ├── quote       报价/明细/Aviator规则计价/POI Word 导出
@@ -37,3 +38,6 @@ module
 7. **坐标**：统一百度 BD-09；PC/移动端均提供 WGS84→GCJ02→BD09 转换；App 建议直接接百度定位 SDK。
 8. **移动离线**：App 用 plus.sqlite，H5/小程序降级 uni.storage；采样点先离线落库，联网一键同步。
 9. **TDengine**：驱动已引入，阶段二接入在线监测时序数据（多数据源/REST 写入），本阶段不启用连接。
+10. **操作日志**：`common/log/OperationLogAspect` 以 `@within(RestController)` 环绕所有写接口（POST/PUT/PATCH/DELETE，GET 不记），
+    按 HTTP 方法+路径映射模块/动作，记录操作人、参数（password 等敏感字段掩码、超长截断）、IP、耗时，日志写入失败不影响业务；
+    查询接口 `GET /system/operation-logs` 仅授予 `PERM_system:operation-log`（管理员）。

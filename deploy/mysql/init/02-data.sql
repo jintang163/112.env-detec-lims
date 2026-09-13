@@ -63,7 +63,8 @@ INSERT INTO sys_permission(id,parent_id,perm_code,perm_name,perm_type,path,icon,
 (504,500,'quote:export','报价导出',2,NULL,NULL,4),
 (600,0,'approval','审批中心',1,'/approval','CheckSquareOutlined',50),
 (601,600,'approval:todo','待办审批',2,NULL,NULL,1),
-(900,0,'system','系统管理',1,'/system','SettingOutlined',90);
+(900,0,'system','系统管理',1,'/system','SettingOutlined',90),
+(901,900,'system:operation-log','操作日志',1,'/system/operation-log','FileSearchOutlined',1);
 
 -- admin 拥有全部权限；其他角色给业务权限
 INSERT INTO sys_role_permission(role_id,permission_id)

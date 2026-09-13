@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -35,7 +36,7 @@ public class OnlyOfficeCallbackController {
         int status = body.getStatus() == null ? 0 : body.getStatus();
         if ((status == 2 || status == 6) && body.getUrl() != null) {
             try (java.io.InputStream in = new URL(body.getUrl()).openStream()) {
-                byte[] bytes = in.readAllBytes();
+                byte[] bytes = org.springframework.util.StreamUtils.copyToByteArray(in);
                 String objectName = "contract/saved/" + bizType.toLowerCase() + "-" + bizId + ".docx";
                 storage.uploadBytes(objectName, bytes,
                         "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
@@ -48,10 +49,10 @@ public class OnlyOfficeCallbackController {
                 }
             } catch (Exception e) {
                 log.error("OnlyOffice 保存回调失败", e);
-                return Map.of("error", 1);
+                return Collections.singletonMap("error", 1);
             }
         }
-        return Map.of("error", 0);
+        return Collections.singletonMap("error", 0);
     }
 
     /** 获取编辑器配置 */

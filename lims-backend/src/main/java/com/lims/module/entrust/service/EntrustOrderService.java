@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +65,7 @@ public class EntrustOrderService {
         org.springframework.beans.BeanUtils.copyProperties(dto, o, "id", "items", "points");
 
         BigDecimal total = BigDecimal.ZERO;
-        List<EntrustItem> items = dto.getItems() == null ? List.of() : dto.getItems();
+        List<EntrustItem> items = dto.getItems() == null ? Collections.<EntrustItem>emptyList() : dto.getItems();
         int idx = 1;
         for (EntrustItem it : items) {
             it.setSortNo(idx++);
@@ -179,7 +180,7 @@ public class EntrustOrderService {
         Page<EntrustOrder> page = orderMapper.selectPage(new Page<>(q.getCurrent(), q.getSize()), wrap);
         Page<EntrustDetailVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
         Set<Long> customerIds = page.getRecords().stream().map(EntrustOrder::getCustomerId).collect(Collectors.toSet());
-        Map<Long, String> names = customerIds.isEmpty() ? Map.of()
+        Map<Long, String> names = customerIds.isEmpty() ? Collections.<Long, String>emptyMap()
                 : customerMapper.selectBatchIds(customerIds).stream()
                 .collect(Collectors.toMap(Customer::getId, Customer::getName));
         result.setRecords(page.getRecords().stream().map(o -> {

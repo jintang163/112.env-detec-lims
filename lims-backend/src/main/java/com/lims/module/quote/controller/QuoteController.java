@@ -21,13 +21,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -89,13 +89,13 @@ public class QuoteController {
             SysFile tplFile = fileService.get(templateId);
             if (tplFile != null) {
                 try (java.io.InputStream in = fileService.downloadStream(tplFile)) {
-                    tpl = in.readAllBytes();
+                    tpl = StreamUtils.copyToByteArray(in);
                 }
             }
         }
         byte[] docx = wordExporter.export(id, tpl);
         QuoteVO q = quoteService.detail(id);
-        String name = URLEncoder.encode(q.getCode() + "-报价单.docx", StandardCharsets.UTF_8).replace("+", "%20");
+        String name = URLEncoder.encode(q.getCode() + "-报价单.docx", "UTF-8").replace("+", "%20");
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + name)
                 .contentType(MediaType.parseMediaType(

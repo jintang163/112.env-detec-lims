@@ -72,7 +72,7 @@ public class WordService {
         });
 
         if (details != null && !details.isEmpty()) {
-            List<String> cols = List.copyOf(details.get(0).keySet());
+            List<String> cols = new java.util.ArrayList<>(details.get(0).keySet());
             XWPFTable table = doc.createTable(details.size() + 1, cols.size());
             setTableFullWidth(table);
             for (int c = 0; c < cols.size(); c++) {

@@ -210,10 +210,10 @@ async function save(submit: boolean) {
     payload.id = editId
     await quoteApi.save(payload)
   } else {
-    id = (await quoteApi.save(payload)) as number
+    id = await quoteApi.save(payload)
   }
   if (submit) {
-    await quoteApi.submit(id)
+    await quoteApi.submit(id!)
     message.success('已提交审批')
   } else {
     message.success('草稿已保存')

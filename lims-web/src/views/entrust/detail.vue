@@ -212,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { message, Modal } from 'ant-design-vue'
@@ -316,7 +316,7 @@ function cancelOrder() {
   let reason = ''
   Modal.confirm({
     title: '确认取消该委托单?',
-    content: (h: any) =>
+    content: () =>
       h('textarea', {
         class: 'ant-input',
         rows: 2,

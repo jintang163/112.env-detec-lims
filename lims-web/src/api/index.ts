@@ -109,5 +109,7 @@ export const fileApi = {
 
 export const systemApi = {
   userOptions: (roleCode?: string) =>
-    http.get('/system/users/options', { params: { roleCode } })
+    http.get('/system/users/options', { params: { roleCode } }),
+  operationLogs: (params: any) =>
+    http.get('/system/operation-logs', { params })
 }

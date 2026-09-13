@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { h, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { DownOutlined } from '@ant-design/icons-vue'
 import { message, Modal } from 'ant-design-vue'
@@ -167,7 +167,7 @@ async function release(record: any) {
     let val = ''
     Modal.confirm({
       title: `将「${record.name}」退回公海?`,
-      content: (h: any) =>
+      content: () =>
         h('textarea', {
           class: 'ant-input',
           rows: 2,
