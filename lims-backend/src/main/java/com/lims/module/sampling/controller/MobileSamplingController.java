@@ -24,7 +24,8 @@ import java.util.Map;
 
 /**
  * 移动端采样接口(uni-app): 我的任务/离线整包下载/样品幂等提交/发起交接/扫码核验。
- * 与 MobileController 一致, 登录态即可访问, 不做方法级权限限制。
+ * 与 MobileController 一致, 登录态即可访问, 不做方法级权限限制;
+ * 任务/样品级数据隔离在服务层统一校验归属(仅任务采样员本人或管理员)。
  */
 @RestController
 @RequestMapping("/mobile/sampling")
@@ -42,10 +43,10 @@ public class MobileSamplingController {
         return Result.ok(PageResult.of(page));
     }
 
-    /** 任务详情整包(任务+计划+点位+检测项+设备+样品照片), 供离线下载 */
+    /** 任务详情整包(任务+计划+点位+检测项+设备+样品照片), 供离线下载; 仅任务采样员本人可见 */
     @GetMapping("/tasks/{id}")
     public Result<TaskDetailVO> taskDetail(@PathVariable Long id) {
-        return Result.ok(taskService.detail(id));
+        return Result.ok(taskService.mobileDetail(id));
     }
 
     /** 记录移动端下载时间 */

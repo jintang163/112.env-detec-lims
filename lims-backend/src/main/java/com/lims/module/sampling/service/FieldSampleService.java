@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lims.common.core.BusinessException;
 import com.lims.common.core.ResultCode;
+import com.lims.common.security.SecurityUtils;
 import com.lims.common.storage.FileService;
 import com.lims.module.entrust.entity.EntrustOrder;
 import com.lims.module.entrust.mapper.EntrustOrderMapper;
@@ -58,6 +59,8 @@ public class FieldSampleService {
         if (task == null) {
             throw new BusinessException("采样任务不存在");
         }
+        // 任务归属: 仅任务采样员本人(或管理员)可写入, 防止越权向他人任务提交样品
+        SecurityUtils.checkOwnerOrAdmin(task.getAssigneeId(), "仅任务采样员可提交该任务的样品");
         if (SamplingStatus.TASK_HANDED.equals(task.getStatus()) || SamplingStatus.TASK_CANCELLED.equals(task.getStatus())) {
             throw new BusinessException(ResultCode.STATUS_NOT_ALLOWED.getCode(), "任务已交接/取消, 不能再提交样品");
         }
@@ -174,6 +177,10 @@ public class FieldSampleService {
         if (s == null) {
             return null;
         }
+        // 扫码核验: 样品管理员接收时可查任意样品, 其余登录用户仅限本人所采(或管理员)
+        if (!SecurityUtils.hasRole("ROLE_SAMPLE_MANAGER")) {
+            SecurityUtils.checkOwnerOrAdmin(s.getSamplerId(), "仅任务采样员可查看该样品");
+        }
         List<SampleVO> v = wrapPhotos(Collections.singletonList(s));
         return v.isEmpty() ? null : v.get(0);
     }
@@ -183,6 +190,7 @@ public class FieldSampleService {
         if (task == null) {
             throw new BusinessException(ResultCode.NOT_FOUND);
         }
+        SecurityUtils.checkOwnerOrAdmin(task.getAssigneeId(), "仅任务采样员可提交该任务");
         if (!SamplingStatus.TASK_ASSIGNED.equals(task.getStatus())) {
             throw new BusinessException(ResultCode.STATUS_NOT_ALLOWED.getCode(), "仅已分配任务可标记完成");
         }
@@ -200,6 +208,7 @@ public class FieldSampleService {
         if (task == null) {
             throw new BusinessException(ResultCode.NOT_FOUND);
         }
+        SecurityUtils.checkOwnerOrAdmin(task.getAssigneeId(), "仅任务采样员可下载该任务");
         if (task.getDownloadedAt() == null) {
             task.setDownloadedAt(LocalDateTime.now());
             taskMapper.updateById(task);

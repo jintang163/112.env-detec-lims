@@ -63,9 +63,7 @@ public class HandoverService {
             throw new BusinessException("采样任务不存在");
         }
         SecurityUtils.LoginUser me = SecurityUtils.current();
-        if (!task.getAssigneeId().equals(me.getUserId()) && !SecurityUtils.hasRole("ROLE_ADMIN")) {
-            throw new BusinessException("仅任务采样员可发起交接");
-        }
+        SecurityUtils.checkOwnerOrAdmin(task.getAssigneeId(), "仅任务采样员可发起交接");
         List<FieldSample> samples = sampleMapper.selectList(Wrappers.<FieldSample>lambdaQuery()
                 .eq(FieldSample::getTaskId, task.getId())
                 .eq(FieldSample::getStatus, SamplingStatus.SAMPLE_COLLECTED));

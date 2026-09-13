@@ -1,0 +1,54 @@
+== 0. 登录(admin/sampler/samplemgr/sales/reviewer/manager) ==
+  ✔ 登录 T_ADMIN (ok)
+  ✔ 登录 T_SAMPLER (ok)
+  ✔ 登录 T_MGR (ok)
+  ✔ 登录 T_SALES (ok)
+  ✔ 登录 T_REVIEW (ok)
+  ✔ 登录 T_MANAGER (ok)
+== 1. 委托单 DRAFT -> REVIEWING -> ACCEPTED ==
+  委托单ID=2099124084513816578
+  ✔ 创建委托单 (ok)
+  ✔ 初始状态DRAFT (DRAFT)
+  ✔ 提交评审后REVIEWING (REVIEWING)
+  ✔ 两级评审通过ACCEPTED (ACCEPTED)
+== 2. 采样计划制定/下发/派工 ==
+  ✔ 创建计划 (ok)
+  ✔ 计划下发ISSUED (ISSUED)
+  ✔ 派工生成任务 (ok)
+  ✔ 任务ASSIGNED (ASSIGNED)
+== 3. 移动端: 我的任务/详情/下载/样品提交 ==
+  ✔ 我的任务含新任务 (yes)
+  ✔ 详情(本人)200 (200)
+  ✔ 下载时间已记录 (yes)
+  ✔ 提交样品COLLECTED (COLLECTED)
+  ✔ 首件样品推进SAMPLING (SAMPLING)
+  ✔ 重复提交(同clientUuid)幂等返回同一样品 (2099124087936368642)
+  ✔ 任务下样品数仍为1 (yes)
+== 4. 越权访问(非任务采样员 sales 登录) ==
+  ✔ 越权读详情被拒403 (403)
+  ✔ 越权下载确认被拒403 (403)
+  ✔ 越权提交样品被拒403 (403)
+  ✔ 越权提交任务被拒403 (403)
+  ✔ 越权发起交接被拒403 (403)
+  ✔ 越权扫码查询被拒403 (403)
+  ✔ 样品管理员扫码可查200 (200)
+== 5. 任务提交 + 样品交接 ==
+  ✔ 采样员提交任务 (200)
+  ✔ 任务SUBMITTED (SUBMITTED)
+  ✔ 发起交接 (ok)
+  ✔ 重复发起交接被拒 (1)
+  ✔ 交接单PENDING (PENDING)
+  ✔ 样品管理员确认接收 (200)
+  ✔ 交接单CONFIRMED (CONFIRMED)
+  ✔ 样品RECEIVED (RECEIVED)
+  ✔ 任务HANDED (HANDED)
+  ✔ 委托单推进TESTING (TESTING)
+  ✔ 已交接任务禁止再提交样品3001 (3001)
+== 6. 委托单状态时间线 ==
+   - -> DRAFT (CREATE) 系统管理员
+   DRAFT -> REVIEWING (SUBMIT) 系统管理员
+   REVIEWING -> ACCEPTED (REVIEW_APPROVE) 李经理(市场主管)
+   ACCEPTED -> SAMPLING (START_SAMPLING) 钱采样员
+   SAMPLING -> TESTING (START_TESTING) 孔样品管理员
+
+==================== 结果: 通过 39 项, 失败 0 项 ====================

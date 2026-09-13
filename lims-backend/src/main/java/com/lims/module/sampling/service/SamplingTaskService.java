@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lims.common.core.BusinessException;
 import com.lims.common.core.ResultCode;
+import com.lims.common.security.SecurityUtils;
 import com.lims.module.entrust.entity.EntrustOrder;
 import com.lims.module.entrust.mapper.EntrustOrderMapper;
 import com.lims.module.sampling.dto.TaskDetailVO;
@@ -95,7 +96,17 @@ public class SamplingTaskService {
 
     /** 任务详情整包: 任务+计划+点位+检测项+设备+已采样品(照片), 供移动端离线下载 */
     public TaskDetailVO detail(Long id) {
+        return assemble(mustGet(id));
+    }
+
+    /** 移动端任务详情: 仅任务采样员本人(或管理员)可见, 防止改ID越权读取他人任务 */
+    public TaskDetailVO mobileDetail(Long id) {
         SamplingTask task = mustGet(id);
+        SecurityUtils.checkOwnerOrAdmin(task.getAssigneeId(), "仅任务采样员可查看该任务");
+        return assemble(task);
+    }
+
+    private TaskDetailVO assemble(SamplingTask task) {
         TaskDetailVO vo = new TaskDetailVO();
         vo.setTask(task);
         SamplingPlan plan = planService.mustGet(task.getPlanId());
@@ -108,7 +119,7 @@ public class SamplingTaskService {
         vo.setPoints(planService.points(plan.getId()));
         vo.setItems(planService.items(plan.getId()));
         vo.setEquipments(planService.equipments(plan.getId()));
-        vo.setSamples(fieldSampleService.listVOByTask(id));
+        vo.setSamples(fieldSampleService.listVOByTask(task.getId()));
         return vo;
     }
 }
